@@ -628,6 +628,14 @@ export class HuggingFaceService {
 	}
 
 	/**
+	 * Parameter count a repo reports: a GGUF repo spells it out in its metadata,
+	 * a transformers repo reports it in its SafeTensors index.
+	 */
+	static parameterCount(details?: HfModelDetailInfo | null): number | null {
+		return details?.gguf?.total ?? details?.safetensors?.total ?? null;
+	}
+
+	/**
 	 * Parse a local HF cache file path
 	 * (`.../models--<org>--<name>/snapshots/<sha>/<file>`) into its repo id and
 	 * repo-relative file path. Returns null when the path is not an HF cache path.

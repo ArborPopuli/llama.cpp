@@ -4,7 +4,7 @@
 	import ModelContext from '../ModelContext.svelte';
 	import ModelId from '../ModelId.svelte';
 	import type { ModelQuantGroup } from './utils';
-	import { configuredContext, isModelRunning } from './utils';
+	import { configuredContext, isModelRunning, type ModelOverride } from './utils';
 	import { ChevronDown, ChevronUp } from '@lucide/svelte';
 	import { MODEL_ROW_GRID_CLASS } from '$lib/constants';
 	import { KeyboardKey } from '$lib/enums';
@@ -14,16 +14,21 @@
 		entry: ModelQuantGroup;
 		expanded: boolean;
 		onToggle: () => void;
+		/** Stored per-model overrides, for the drafts and context the row reports. */
+		overrides?: Record<string, ModelOverride>;
 		/** Left padding in px, from the nesting depth. */
 		indent?: number;
 	}
 
-	let { entry, expanded, indent = 0, onToggle }: Props = $props();
+	let { entry, expanded, indent = 0, onToggle, overrides }: Props = $props();
 
+	let providerCount = $derived(new Set(entry.quants.map((option) => option.backendId ?? '')).size);
 	let groupLabel = $derived(
-		entry.kind === 'variants'
-			? `${entry.quants.length} variants`
-			: `${entry.quants.length} quants available`
+		entry.kind === 'providers'
+			? `${providerCount} provider${providerCount === 1 ? '' : 's'}`
+			: entry.kind === 'variants'
+				? `${entry.quants.length} variants`
+				: `${entry.quants.length} quants available`
 	);
 	let anyLoaded = $derived(entry.quants.some((quant) => isModelRunning(quant)));
 	// a repo row stands for its quants, so it reports what they agree on
@@ -78,7 +83,7 @@
 
 	<ModelContext
 		class="justify-self-end"
-		configured={configuredContext(contextSource)}
+		configured={configuredContext(contextSource, overrides)}
 		option={contextSource}
 	/>
 

@@ -1,10 +1,5 @@
 <script lang="ts">
-	import {
-		LOAD_DEFAULTS,
-		type ModelLoadProgress,
-		type ModelOverride,
-		SPECULATIVE_OPTIONS
-	} from '../utils';
+	import type { ModelLoadProgress, ModelOverride } from '../utils';
 	import { Info, ListOrdered } from '@lucide/svelte';
 	import { CollapsibleSection } from '$lib/components/app';
 	import { Badge } from '$lib/components/ui/badge';
@@ -12,6 +7,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Slider } from '$lib/components/ui/slider';
 	import { Switch } from '$lib/components/ui/switch';
+	import { LOAD_DEFAULTS, SPECULATIVE_OPTIONS } from '$lib/constants';
 	import { formatParameters } from '$lib/utils/formatters';
 
 	interface Props {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type ModelOverride, SAMPLING_DEFAULTS } from '../utils';
+	import type { ModelOverride } from '../utils';
 	import { Braces, CircleDot, SlidersHorizontal, X } from '@lucide/svelte';
 	import { CollapsibleSection } from '$lib/components/app';
 	import { Button } from '$lib/components/ui/button';
@@ -8,6 +8,7 @@
 	import { Slider } from '$lib/components/ui/slider';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import { SAMPLING_DEFAULTS } from '$lib/constants';
 
 	interface Props {
 		draft: ModelOverride;

@@ -2,15 +2,17 @@
 	import ModelsManagerModelsTable from './ModelsManagerModelsTable.svelte';
 	import {
 		groupModelQuants,
-		type ModalityKey,
 		modelContextLength,
 		type ModelQuantGroup,
-		MODELS_TABLE_GROUP_LABELS,
 		type ModelsTableGroup,
-		ModelsTableGroupKind,
 		modelSupports
 	} from './utils';
-	import { LOCAL_BACKEND_ID } from '$lib/constants';
+	import {
+		LOCAL_BACKEND_ID,
+		type ModalityKey,
+		MODELS_TABLE_GROUP_LABELS,
+		ModelsTableGroupKind
+	} from '$lib/constants';
 	import { ModelCapability } from '$lib/enums';
 	import { modelsStore, uiStore } from '$lib/stores';
 	import type { ModelOption } from '$lib/types/models';
@@ -59,8 +61,7 @@
 		});
 	});
 
-	// recently used models lead their section, the rest keep the server's order;
-	// derived, so a pick made while the manager is open reorders the sections
+	// recently used models lead their section, the rest keep the server's order
 	let rank = $derived.by(() => {
 		const map = new SvelteMap<string, number>();
 
@@ -73,12 +74,10 @@
 		Math.min(...entry.quants.map((quant) => rank.get(quant.id) ?? Number.MAX_SAFE_INTEGER));
 	const byRecency = (list: ModelQuantGroup[]) =>
 		rank.size === 0 ? list : [...list].sort((a, b) => rankOf(a) - rankOf(b));
-	// one entry per repo, so a model with several quants is a single table row;
-	// loaded models lead the table, then favorites, then the local block
+	// one entry per repo, so a model with several quants takes a single table row
 	let entries = $derived(byRecency(groupModelQuants(matching)));
 	let groups = $derived.by(() => {
-		// A loaded quant is a model of its own: it moves to the loaded section, and
-		// the quants of its repo that are not loaded stay behind as that repo.
+		// a loaded quant is a model of its own: its repo keeps the quants left behind
 		const isLoaded = (option: ModelOption) => modelsStore.isModelLoaded(option.model);
 		const loaded: ModelQuantGroup[] = [];
 		const rest: ModelQuantGroup[] = [];

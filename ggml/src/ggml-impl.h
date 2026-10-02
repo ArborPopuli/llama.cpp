@@ -30,6 +30,8 @@ extern "C" {
 
 void ggml_print_backtrace(void);
 
+void ggml_print_backtrace_signals(void);
+
 uint64_t ggml_graph_next_uid(void);
 
 #ifndef MIN

@@ -250,6 +250,9 @@ GGML_API ggml_abort_callback_t ggml_set_abort_callback(ggml_abort_callback_t cal
     return ret_val;
 }
 
+// Set when a backtrace has already been printed. Defined in ggml.cpp.
+extern volatile sig_atomic_t ggml_backtrace_printed;
+
 void ggml_abort(const char * file, int line, const char * fmt, ...) {
     fflush(stdout);
 
@@ -267,12 +270,45 @@ void ggml_abort(const char * file, int line, const char * fmt, ...) {
         // default: print error and backtrace to stderr
         fprintf(stderr, "%s\n", message);
         ggml_print_backtrace();
+#if defined(__linux__) || defined(__APPLE__)
+        // a backtrace was printed, so the signal handler in ggml.cpp must not print another
+        ggml_backtrace_printed = 1;
+#endif
     }
 
     abort();
 }
 
 // ggml_print_backtrace is registered with std::set_terminate by ggml.cpp
+
+#if defined(__linux__) || (defined(__APPLE__) && !TARGET_OS_TV && !TARGET_OS_WATCH)
+
+// Printer for the fatal signal handler in ggml.cpp. Kept small on purpose: no allocation and no symbol lookup, because dladdr takes the loader lock. snprintf and backtrace() are not strictly async-signal-safe, so this is best-effort.
+void ggml_print_backtrace_signals(void) {
+    static const char header[] = "\nfatal signal, backtrace:\n";
+    (void) !write(STDERR_FILENO, header, sizeof(header) - 1);
+
+    void * buffer[100];
+    int count = 0;
+
+#if defined(__ANDROID__)
+    struct backtrace_state state = { buffer, buffer + 100 };
+    _Unwind_Backtrace(unwind_callback, &state);
+    count = (int) (state.current - buffer);
+#else
+    count = backtrace(buffer, 100);
+#endif
+
+    for (int idx = 0; idx < count; ++idx) {
+        char line[32];
+        int len = snprintf(line, sizeof(line), "#%d %p\n", idx, buffer[idx]);
+        if (len > 0) {
+            (void) !write(STDERR_FILENO, line, (size_t) len < sizeof(line) ? (size_t) len : sizeof(line) - 1);
+        }
+    }
+}
+
+#endif
 
 //
 // logging
